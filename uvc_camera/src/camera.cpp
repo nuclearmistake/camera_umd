@@ -48,13 +48,34 @@ Camera::Camera(ros::NodeHandle _comm_nh, ros::NodeHandle _param_nh) :
 
       pnode.getParam("frame_id", frame);
 
+      char *modestr;
+
+      rps.param("mode", modestr, "RGB");
+
+      if (modestr.find("MJPG"))
+      {
+
+      }
+      else if (modestr.find("RGB"))
+      {
+
+      }
+      else if (modestr.find("YUV"))
+      {
+
+      }
+      else
+      {
+    	  ROS_ERROR("Unsupported mode specified")
+      }
+
       /* advertise image streams and info streams */
       pub = it.advertise("image_raw", 1);
 
       info_pub = node.advertise<CameraInfo>("camera_info", 1);
 
       /* initialize the cameras */
-      cam = new uvc_cam::Cam(device.c_str(), uvc_cam::Cam::MODE_RGB, width, height, fps);
+      cam = new uvc_cam::Cam(device.c_str(), cammode, width, height, fps);
       cam->set_motion_thresholds(100, -1);
 
       /* and turn on the streamer */
