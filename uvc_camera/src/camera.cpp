@@ -50,9 +50,7 @@ Camera::Camera(ros::NodeHandle _comm_nh, ros::NodeHandle _param_nh) :
 
       std::string modestr;
       uvc_cam::Cam::mode_t mode;
-
       pnode.param("mode", modestr, std::string("MJPG"));
-
       if (modestr.find("MJPG"))
       {
     	  mode = uvc_cam::Cam::MODE_MJPG;
@@ -73,8 +71,11 @@ Camera::Camera(ros::NodeHandle _comm_nh, ros::NodeHandle _param_nh) :
     	  return;
       }
 
+      std::string output_topic;
+      pnode.param("output_topic", output_topic, std::string("image_raw"));
+
       /* advertise image streams and info streams */
-      pub = it.advertise("image_raw", 1);
+      pub = it.advertise(output_topic.c_str(), 1);
 
       info_pub = node.advertise<CameraInfo>("camera_info", 1);
 
