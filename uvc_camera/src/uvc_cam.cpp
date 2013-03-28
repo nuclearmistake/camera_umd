@@ -17,6 +17,13 @@ extern int errno;
 using std::string;
 using namespace uvc_cam;
 
+std::runtime_error up(std::string message)
+{
+	std::stringstream awwcrap;
+	awwcrap << message << " " << std::string(strerror(errno));
+	return std::runtime_error(awwcrap.str().c_str());
+}
+
 Cam::Cam(const char *_device, mode_t _mode, int _width, int _height, int _fps)
 : mode(_mode), device(_device),
   motion_threshold_luminance(100), motion_threshold_count(-1),
@@ -103,14 +110,14 @@ Cam::Cam(const char *_device, mode_t _mode, int _width, int _height, int _fps)
     fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_MJPEG;
   fmt.fmt.pix.field = V4L2_FIELD_ANY;
   if ((ret = ioctl(fd, VIDIOC_S_FMT, &fmt)) < 0)
-    throw std::runtime_error("couldn't set format");
+    throw up("couldn't set format");
   if (fmt.fmt.pix.width != width || fmt.fmt.pix.height != height)
-    throw std::runtime_error("pixel format unavailable");
+    throw up("pixel format unavailable");
   streamparm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
   streamparm.parm.capture.timeperframe.numerator = 1;
   streamparm.parm.capture.timeperframe.denominator = fps;
   if ((ret = ioctl(fd, VIDIOC_S_PARM, &streamparm)) < 0)
-    throw std::runtime_error("unable to set framerate");
+    throw up("unable to set framerate");
   v4l2_queryctrl queryctrl;
   memset(&queryctrl, 0, sizeof(queryctrl));
   uint32_t i = V4L2_CID_BASE;
@@ -237,18 +244,11 @@ Cam::Cam(const char *_device, mode_t _mode, int _width, int _height, int _fps)
       throw std::runtime_error("unable to queue buffer");
   }
   int type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  try {
-	  if (ioctl(fd, VIDIOC_STREAMON, &type) < 0)
-	  {
-		  std::stringstream awwcrap;
-		  awwcrap << std::string("ioctl failed to turn on the video stream! ") << std::string(strerror(errno));
-		  throw std::runtime_error(awwcrap.str().c_str());
-	  }
-  }
-  catch(std::exception& e)
+  if (ioctl(fd, VIDIOC_STREAMON, &type) < 0)
   {
-	  ROS_ERROR("OH NOEZ! -- %s", e.what());
+	  throw up("ioctl failed to turn on the video stream!");
   }
+
   rgb_frame = new unsigned char[width * height * 3];
   last_yuv_frame = new unsigned char[width * height * 2];
 }
@@ -461,17 +461,16 @@ void Cam::set_control(uint32_t id, int val)
 
   if (ioctl(fd, VIDIOC_G_CTRL, &c) == 0)
   {
-    printf("current value of %d is %d\n", id, c.value);
-    /*
-    perror("unable to get control");
-    throw std::runtime_error("unable to get control");
-    */
+	ROS_INFO("Trying to change %d from %d to %d",id,c.value,val);
+	/*
+	perror("unable to get control");
+	throw std::runtime_error("unable to get control");
+	*/
   }
   c.value = val;
   if (ioctl(fd, VIDIOC_S_CTRL, &c) < 0)
   {
-    perror("unable to set control");
-    throw std::runtime_error("unable to set control");
+	throw up("unable to set control");
   }
 }
 
