@@ -240,8 +240,8 @@ Cam::Cam(const char *_device, mode_t _mode, int _width, int _height, int _fps)
   try {
 	  if (ioctl(fd, VIDIOC_STREAMON, &type) < 0)
 	  {
-		  std::stringstream awwcrap(std::string("ioctl failed to turn on the video stream! "));
-		  awwcrap << std::string(strerror(errno));
+		  std::stringstream awwcrap;
+		  awwcrap << std::string("ioctl failed to turn on the video stream! ") << std::string(strerror(errno));
 		  throw std::runtime_error(awwcrap.str().c_str());
 	  }
   }
