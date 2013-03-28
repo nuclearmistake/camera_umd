@@ -1,4 +1,6 @@
 camera_umd
 ==========
 
-Fork of Ken Tossell's camera_umd ROS stack
+ORIGINALLY: http://www.ros.org/wiki/camera_umd?distro=fuerte
+
+will straighten out license when I get a minute.
