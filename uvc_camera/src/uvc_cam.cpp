@@ -1,4 +1,5 @@
 /* This file is from the uvc_cam package by Morgan Quigley */
+#include <ros/ros.h>
 #include <cstring>
 #include <string>
 #include <cstdio>
@@ -10,6 +11,8 @@
 #include <fcntl.h>
 #include <errno.h>
 #include "uvc_cam/uvc_cam.h"
+
+extern int errno;
 
 using std::string;
 using namespace uvc_cam;
@@ -234,8 +237,18 @@ Cam::Cam(const char *_device, mode_t _mode, int _width, int _height, int _fps)
       throw std::runtime_error("unable to queue buffer");
   }
   int type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  if (ioctl(fd, VIDIOC_STREAMON, &type) < 0)
-    throw std::runtime_error("unable to start capture");
+  try {
+	  if (ioctl(fd, VIDIOC_STREAMON, &type) < 0)
+	  {
+		  std::stringstream awwcrap(std::string("ioctl failed to turn on the video stream! "));
+		  awwcrap << std::string(strerror(errno));
+		  throw std::runtime_error(awwcrap.str().c_str());
+	  }
+  }
+  catch(std::exception& e)
+  {
+	  ROS_ERROR("OH NOEZ! -- %s", e.what());
+  }
   rgb_frame = new unsigned char[width * height * 3];
   last_yuv_frame = new unsigned char[width * height * 2];
 }
