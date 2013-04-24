@@ -194,7 +194,7 @@ Cam::Cam(const char *_device, mode_t _mode, int _width, int _height, int _fps)
   }
   catch (std::runtime_error &ex)
   {
-    printf("ERROR: could not set some settings.  \n %s \n", ex.what());
+    ROS_ERROR("could not set some settings. %s", ex.what());
   }
 
 /*
